@@ -1,0 +1,4 @@
+name: Dragonslayer
+version: '${project.version}'
+main: org.kisten.dragonslayer.Dragonslayer
+api-version: '1.20'
