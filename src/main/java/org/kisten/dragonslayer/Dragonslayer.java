@@ -2,32 +2,52 @@ package org.kisten.dragonslayer;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.RecipeChoice;
-import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.SmithingTransformRecipe;
+import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.lang.reflect.Field;
+import java.util.*;
 
 import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.NamedTextColor.DARK_PURPLE;
+import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
+import static net.kyori.adventure.text.format.TextColor.color;
 
 public final class Dragonslayer extends JavaPlugin {
+
+    private static Dragonslayer instance;
 
     @Override
     public void onEnable() {
         // Plugin startup logic
         SumCrafts();
+        instance = this;
+        registerGlow();
+    }
+
+    public static Dragonslayer getInstance() {
+        return instance;
+    }
+
+    public void registerGlow() {
+        try {
+            Field f = Enchantment.class.getDeclaredField("acceptingNew");
+            f.setAccessible(true);
+            f.set(null, true);
+            Glow glow = new Glow();
+            Enchantment.registerEnchantment(glow);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void SumCrafts() {
@@ -63,7 +83,7 @@ public final class Dragonslayer extends JavaPlugin {
         DarkMetalRecipe.setIngredient('O', EchoDust);
         Bukkit.addRecipe(DarkMetalRecipe);
 
-        Component LongySwordyName = text("Длинный меч").color(NamedTextColor.DARK_PURPLE);
+        Component LongySwordyName = text().content("Длинный").color(color(DARK_PURPLE)).append(text("меч", GOLD)).build();
         Component LongySwordyLore = text("Меч из тёмного металла").color(NamedTextColor.DARK_GRAY);
         ItemStack LongySwordy = new ItemStack(Material.DIAMOND_SWORD);
         ItemMeta GatsuSwordo = LongySwordy.getItemMeta();
@@ -71,15 +91,38 @@ public final class Dragonslayer extends JavaPlugin {
         List glist2 = new ArrayList();
         glist2.add(LongySwordyLore);
         Objects.requireNonNull(GatsuSwordo).lore(glist2);
-        LongySwordy.setItemMeta(GatsuSwordo);
-        NamespacedKey LongySwordyKey = new NamespacedKey(this, "LongySwordy");
-        AttributeModifier M = new AttributeModifier("pipiska", 10, AttributeModifier.Operation.ADD_NUMBER);
+        AttributeModifier M = new AttributeModifier(UUID.randomUUID(), "pipiN", 10, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND);
         GatsuSwordo.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE, M);
+        GatsuSwordo.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED, new AttributeModifier(UUID.randomUUID(), "pipiN", -3.2,
+                AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND));
         GatsuSwordo.addEnchant(Enchantment.SWEEPING_EDGE, 4, true);
         LongySwordy.setItemMeta(GatsuSwordo);
+        NamespacedKey LongySwordyKey = new NamespacedKey(this, "LongySwordy");
         SmithingTransformRecipe LongSword = new SmithingTransformRecipe(LongySwordyKey, LongySwordy, new RecipeChoice.MaterialChoice(Material.NETHERITE_UPGRADE_SMITHING_TEMPLATE),
-                new RecipeChoice.MaterialChoice(Material.NETHERITE_SWORD), new  RecipeChoice.ExactChoice(DarkMetal));
+                new RecipeChoice.MaterialChoice(Material.NETHERITE_SWORD), new  RecipeChoice.ExactChoice(DarkMetal), false);
         Bukkit.addRecipe(LongSword);
+
+        Component eughName = text("§5Ицо");
+        Component eughLore = text("§4Правое §8или §1левое?");
+        ItemStack eugh = new ItemStack(Material.DRAGON_EGG, 1);
+        ItemMeta eughMeta = eugh.getItemMeta();
+        Objects.requireNonNull(eughMeta).displayName(eughName);
+        List glist3 = new ArrayList();
+        glist3.add(eughLore);
+        Objects.requireNonNull(eughMeta).lore(glist3);
+        /*
+        Glow glow = new Glow();
+        eughMeta.addEnchant(glow, 1, true);
+         */
+        eugh.setItemMeta(eughMeta);
+        NamespacedKey eughKey = new NamespacedKey(this, "eugh");
+        ShapedRecipe eughRecipe = new ShapedRecipe(eughKey, eugh);
+        eughRecipe.shape("XXX", "ABC", "XXX");
+        eughRecipe.setIngredient('A', Material.TURTLE_EGG);
+        eughRecipe.setIngredient('B', Material.SNIFFER_EGG);
+        eughRecipe.setIngredient('C', Material.EGG);
+        eughRecipe.setIngredient('X', Material.PHANTOM_MEMBRANE);
+        Bukkit.addRecipe(eughRecipe);
     }
 
     @Override
